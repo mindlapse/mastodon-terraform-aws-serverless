@@ -1,6 +1,6 @@
 locals {
-  prefix  = "mast"
-  env     = "prod"
+  prefix = "mast"
+  env    = "prod"
 }
 
 terraform {
