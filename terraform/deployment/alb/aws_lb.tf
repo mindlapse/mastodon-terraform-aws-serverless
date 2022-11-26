@@ -1,4 +1,4 @@
-resource "aws_lb" "test" {
+resource "aws_lb" "alb" {
 
   name = "${local.prefix_hyphen}-mastodon"
 
