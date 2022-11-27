@@ -1,6 +1,6 @@
 variable "product" {
   type        = string
-  description = "product codename, e.g. 'ta'"
+  description = "product codename, e.g. 'mast'"
 }
 
 variable "env" {

@@ -1,8 +1,3 @@
-locals {
-  prefix = "mast"
-  env    = "prod"
-}
-
 terraform {
   required_providers {
     aws = {
@@ -13,12 +8,12 @@ terraform {
 }
 
 provider "aws" {
-  region  = "ca-central-1"
-  profile = "mastodon"
+  region  = var.region
+  profile = var.aws_profile
   default_tags {
     tags = {
-      PREFIX = local.prefix
-      ENV    = local.env
+      PRODUCT = var.product
+      ENV    = var.env
     }
   }
 }
@@ -27,9 +22,11 @@ provider "aws" {
 module "deployment" {
   source = "./deployment"
 
-  product = "mast"
-  env     = "prod"
+  product = var.product
+  env     = var.env
 
-  vpc_cidr_prefix    = "10.0"     # example: 10.0 is the prefix for 10.0.0.0/16
-  container_insights = "disabled" # costs extra
+  domain          = var.domain
+  cert_acm_arn    = var.acm_cert_arn
+  vpc_cidr_prefix = var.vpc_cidr_prefix
+
 }

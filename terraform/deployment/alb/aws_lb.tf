@@ -1,6 +1,6 @@
 resource "aws_lb" "alb" {
 
-  name = "${local.prefix_hyphen}-mastodon"
+  name = "${local.prefix_hyphen}-alb"
 
   internal = false
 
