@@ -11,16 +11,20 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
   certbot libidn11-dev libicu-dev libjemalloc-dev
 RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv
 RUN cd ~/.rbenv && src/configure && make -C src
-RUN echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
+RUN echo 'export PATH="/root/.rbenv/bin:$PATH"' >> ~/.bashrc
 RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-RUN exec bash && \
-    git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build && \
-    RUBY_CONFIGURE_OPTS=--with-jemalloc rbenv install 3.0.4 && \
-    rbenv global 3.0.4 && \
-    gem install bundler
+RUN echo $HOME
+ENV PATH="/root/.rbenv/shims:/root/.rbenv/bin:$PATH"
+RUN git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
+RUN rbenv install 3.0.4
+RUN rbenv global 3.0.4
+RUN gem install bundler
 RUN git clone https://github.com/mastodon/mastodon.git live
-RUN cd live && git checkout $(git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1)
-RUN exec bash && bundle config deployment 'true' && \
+
+RUN cd live && git checkout $(git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1) && \
+    bundle config deployment 'true' && \
     bundle config without 'development test' && \
-    bundle install -j$(getconf _NPROCESSORS_ONLN) && \
-    yarn install --pure-lockfile
+    bundle install -j$(getconf _NPROCESSORS_ONLN)
+RUN corepack enable
+RUN yarn install --pure-lockfile
+#RUN RAILS_ENV=production exec bash && bundle exec rake mastodon:setup
