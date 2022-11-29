@@ -17,8 +17,8 @@ variable "env" {
 /* Listener parameters */
 
 variable "cert_acm_arn" {
-    type      = string
-    description = "ARN of the ACM Certificate to use with the domain"
+  type        = string
+  description = "ARN of the ACM Certificate to use with the domain"
 }
 
 variable "vpc_id" {

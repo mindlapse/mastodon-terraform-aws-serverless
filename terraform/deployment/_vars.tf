@@ -14,8 +14,8 @@ variable "vpc_cidr_prefix" {
 }
 
 variable "domain" {
-    type = string
-    description = "The domain name e.g. 'mastodon.solar'"
+  type        = string
+  description = "The domain name e.g. 'mastodon.solar'"
 }
 
 variable "container_insights" {
@@ -25,6 +25,7 @@ variable "container_insights" {
 }
 
 variable "cert_acm_arn" {
-    type      = string
-    description = "ARN of the ACM Certificate to use with the domain"
+  type        = string
+  description = "ARN of the ACM Certificate to use with the domain"
 }
+

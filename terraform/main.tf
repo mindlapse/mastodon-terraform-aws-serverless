@@ -13,7 +13,7 @@ provider "aws" {
   default_tags {
     tags = {
       PRODUCT = var.product
-      ENV    = var.env
+      ENV     = var.env
     }
   }
 }
@@ -28,5 +28,4 @@ module "deployment" {
   domain          = var.domain
   cert_acm_arn    = var.acm_cert_arn
   vpc_cidr_prefix = var.vpc_cidr_prefix
-
 }
