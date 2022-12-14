@@ -25,7 +25,10 @@ module "deployment" {
   product = var.product
   env     = var.env
 
-  domain          = var.domain
-  cert_acm_arn    = var.acm_cert_arn
-  vpc_cidr_prefix = var.vpc_cidr_prefix
+  domain         = var.domain
+  hosted_zone_id = var.hosted_zone_id
+  cert_acm_arn   = var.acm_cert_arn
+  vpc_id         = var.vpc_id
+
+  force_new_deployment = true
 }

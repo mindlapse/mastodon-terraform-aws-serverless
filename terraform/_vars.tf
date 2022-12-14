@@ -8,10 +8,9 @@ variable "region" {
   description = "The AWS region where mastodon will be deployed. e.g. ca-central-1"
 }
 
-variable "vpc_cidr_prefix" {
+variable "vpc_id" {
   type        = string
-  default     = "10.0"
-  description = "The prefix of the IP addresses used by the VPC.  The default 10.0 will create a VPC that spans 10.0.0.0/16."
+  description = "The VPC in which resources should be created.  See layers/network for the prerequisite module to create a VPC."
 }
 
 variable "product" {
@@ -29,6 +28,11 @@ variable "env" {
 variable "domain" {
   type        = string
   description = "The domain name of the mastodon deployment"
+}
+
+variable "hosted_zone_id" {
+  type        = string
+  description = "The ID of the hosted zone that will receive an aws_route53_record"
 }
 
 variable "acm_cert_arn" {
