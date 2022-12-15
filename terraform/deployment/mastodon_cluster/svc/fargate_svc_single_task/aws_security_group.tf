@@ -1,15 +1,15 @@
 
-resource "aws_security_group" "puma_sg" {
+resource "aws_security_group" "sg" {
 
-  name        = "${local.prefix_hyphen}-puma-sg"
+  name        = "${local.prefix_hyphen}-${var.simple_name}-sg"
   description = "Allow TLS inbound traffic"
 
   vpc_id = var.vpc_id
 
   ingress {
     description      = "TLS from internet"
-    from_port        = 3000
-    to_port          = 3000
+    from_port        = var.container_port
+    to_port          = var.container_port
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]

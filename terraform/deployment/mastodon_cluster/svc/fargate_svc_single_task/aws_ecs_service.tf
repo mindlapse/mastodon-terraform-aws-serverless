@@ -1,8 +1,8 @@
 
-resource "aws_ecs_service" "puma" {
+resource "aws_ecs_service" "svc" {
 
   # (Required) Name of the service (up to 255 letters, numbers, hyphens, and underscores)
-  name = "${local.prefix}_puma"
+  name = "${local.prefix}_${var.simple_name}"
 
   # (Optional) Capacity provider strategies to use for the service. Can be one or more. 
   # These can be updated without destroying and recreating the service only if force_new_deployment = true and
@@ -14,7 +14,7 @@ resource "aws_ecs_service" "puma" {
   }
 
   # (Optional) ARN of an ECS cluster.
-  cluster = aws_ecs_cluster.cluster.arn
+  cluster = var.ecs_cluster_arn
 
 
   # (Optional) Configuration block for deployment circuit breaker.
@@ -47,7 +47,7 @@ resource "aws_ecs_service" "puma" {
 
   # (Optional) Number of instances of the task definition to place and keep running. Defaults to 0. 
   # Do not specify if using the DAEMON scheduling strategy.
-  desired_count = 1
+  desired_count = var.desired_count
 
   # (Optional) Specifies whether to enable Amazon ECS managed tags for the tasks within the service.
   enable_ecs_managed_tags = false
@@ -78,9 +78,9 @@ resource "aws_ecs_service" "puma" {
   # (Optional) Configuration block for load balancers. See below.
   load_balancer {
     # elb_name = # (Required for ELB Classic) Name of the ELB (Classic) to associate with the service.
-    target_group_arn = var.puma_target_group_arn
-    container_name   = "${local.prefix}_puma"
-    container_port   = var.port_puma
+    target_group_arn = var.target_group_arn
+    container_name   = "${local.prefix}_${var.simple_name}"
+    container_port   = var.container_port
   }
 
   # (Optional) Network configuration for the service. This parameter is required for task definitions that use the awsvpc network mode 
@@ -91,7 +91,7 @@ resource "aws_ecs_service" "puma" {
     subnets = var.subnet_ids
 
     # (Optional) Security groups associated with the task or service. If you do not specify a security group, the default security group for the VPC is used.
-    security_groups = [aws_security_group.puma_sg.id]
+    security_groups = [aws_security_group.sg.id]
 
     # (Optional) Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false.
     assign_public_ip = true
@@ -130,7 +130,7 @@ resource "aws_ecs_service" "puma" {
 
   # (Optional) Family and revision (family:revision) or full ARN of the task definition that you want to run in your service. 
   # Required unless using the EXTERNAL deployment controller. If a revision is not specified, the latest ACTIVE revision is used.
-  task_definition = aws_ecs_task_definition.puma.arn
+  task_definition = aws_ecs_task_definition.task.arn
 
   # (Optional) Map of arbitrary keys and values that, when changed, will trigger an in-place update (redeployment). Useful with timestamp(). See example above.
   # triggers = null

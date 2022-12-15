@@ -34,17 +34,18 @@ variable "ecr_puma_url" {
 
 /* Sizing */
 
-variable "cpu_puma" {
-  type        = string
-  default     = 256
-  description = "Amount of CPU for puma. 1024 = 1 vCPU"
+variable "count_puma" {
+  type        = number
+  default     = 1
+  description = "Number of puma instances desired"
 }
 
-variable "mem_puma" {
-  type        = string
-  default     = 512
-  description = "Amount of memory for puma. 1024 = 1 GB"
+variable "count_streaming" {
+  type        = number
+  default     = 1
+  description = "Number of streaming instances desired"
 }
+
 
 
 /* Routing */
@@ -61,6 +62,12 @@ variable "port_puma" {
   type        = number
   description = "The port for puma (i.e. the web container in mastodon)"
   default     = 3000
+}
+
+variable "port_streaming" {
+  type        = number
+  description = "The port for streaming (i.e. the streaming container in mastodon)"
+  default     = 4000
 }
 
 /* Cluster */

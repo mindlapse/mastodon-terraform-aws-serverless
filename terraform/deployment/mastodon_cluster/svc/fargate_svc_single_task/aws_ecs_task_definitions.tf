@@ -1,10 +1,10 @@
-resource "aws_ecs_task_definition" "puma" {
+resource "aws_ecs_task_definition" "task" {
 
   # (Required) A unique name for your task definition.
-  family = "${local.prefix}_puma"
+  family = "${local.prefix}_${var.simple_name}"
 
   # (Optional) Number of cpu units used by the task. If the requires_compatibilities is FARGATE this field is required.
-  cpu = var.cpu_puma
+  cpu = var.cpu
 
   # (Optional) ARN of the task execution role that the Amazon ECS container agent and the Docker daemon can assume.
   execution_role_arn = aws_iam_role.task_execution_role.arn
@@ -16,7 +16,7 @@ resource "aws_ecs_task_definition" "puma" {
   # ipc_mode = null # Not supported with Fargate
 
   # (Optional) Amount (in MiB) of memory used by the task. If the requires_compatibilities is FARGATE this field is required.
-  memory = var.mem_puma
+  memory = var.mem
 
   # (Optional) Docker networking mode to use for the containers in the task. Valid values are none, bridge, awsvpc, and host.
   network_mode = "awsvpc"
@@ -52,9 +52,9 @@ resource "aws_ecs_task_definition" "puma" {
   # Please note that you should only provide values that are part of the container definition document.
   container_definitions = jsonencode([
     {
-      name = "${local.prefix}_puma"
+      name = "${local.prefix}_${var.simple_name}"
 
-      image = "${var.ecr_puma_url}:latest"
+      image = "${var.ecr_image_url}:latest"
 
       # memory (not set)
 
@@ -62,14 +62,14 @@ resource "aws_ecs_task_definition" "puma" {
 
       portMappings = [{
         appProtocol   = null
-        containerPort = var.port_puma
+        containerPort = var.container_port
         hostPort      = null
         name          = null
         protocol      = "tcp"
       }]
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -q --spider --proxy=off localhost:3000/health || exit 1"]
+        command     = var.health_check_command
         interval    = 30
         timeout     = 5
         retries     = 3
@@ -80,15 +80,11 @@ resource "aws_ecs_task_definition" "puma" {
       # gpu = null
       essential = true
       # entryPoint = null
-      command          = ["bash", "-c", "rm -f /mastodon/tmp/pids/server.pid; bundle exec rails s -p 3000"]
-      workingDirectory = "/opt/mastodon"
+      command          = var.run_command
+      workingDirectory = var.working_directory
       # environmentFiles = null
-      environment = [
-        {
-          "name" : "ALTERNATE_IP_RANGES",
-          "value" : join(",", [for s in data.aws_subnet.subnet : s.cidr_block])
-        }
-      ]
+      environment = var.environment
+
       # secrets = null
 
       /* <NotSupportedByFargate> */
@@ -114,8 +110,8 @@ resource "aws_ecs_task_definition" "puma" {
         options = {
           "awslogs-create-group"  = "true"
           "awslogs-region"        = local.region
-          "awslogs-group"         = "${local.prefix}_puma"
-          "awslogs-stream-prefix" = "${local.prefix}_puma"
+          "awslogs-group"         = "${local.prefix}_${var.simple_name}"
+          "awslogs-stream-prefix" = "${local.prefix}_${var.simple_name}"
           "mode"                  = "non-blocking"
           "max-buffer-size"       = "2m"
         }
@@ -126,7 +122,7 @@ resource "aws_ecs_task_definition" "puma" {
       # firelensConfiguration = null
 
       # privileged = (not supported by Fargate)
-      user = "mastodon"
+      user = var.user
       # dockerSecurityOptions = ( not supported by Fargate )
       ulimits = [{
         name      = "nofile"
