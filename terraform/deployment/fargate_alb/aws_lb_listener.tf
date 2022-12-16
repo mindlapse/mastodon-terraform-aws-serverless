@@ -8,8 +8,13 @@ resource "aws_lb_listener" "https" {
   certificate_arn = var.cert_acm_arn
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.ecs.arn
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/html"
+      message_body = "<html><body style='background-color:#202124;color:white;'>under maintenance</body></html>"
+      status_code  = 404
+    }
   }
 }
 

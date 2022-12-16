@@ -31,7 +31,9 @@ variable "simple_name" {
 }
 
 variable "container_port" {
-  type = number
+  type        = number
+  default     = null
+  description = "The port on which to deploy a container"
 }
 
 variable "desired_count" {
@@ -65,15 +67,31 @@ variable "ecs_cluster_arn" {
   description = "the ARN of the ECS cluster where the service should be created"
 }
 
-variable "target_group_arn" {
-  type        = string
-  description = "The target group to attach to the service"
-}
-
 variable "ecr_image_url" {
   type        = string
   description = "The URL of the aws_ecr_repository to deploy"
 }
+
+/* Routing */
+
+variable "listener_arn" {
+  type        = string
+  default     = null
+  description = "The ARN of the HTTPS listener, to which listener rules will be attached"
+}
+
+variable "path_pattern" {
+  type        = string
+  default     = null
+  description = "The path pattern to needed for traffic to be routed. e.g. /api/v1/streaming"
+}
+
+variable "route_priority" {
+  type        = number
+  default     = 1
+  description = "An integer priority for placing listener rules.  Rules eval from lowest to highest priority."
+}
+
 
 
 /* Runtime */
@@ -102,5 +120,6 @@ variable "environment" {
     name : string
     value : string
   }))
+  default     = []
   description = "A list of environment variables to pass to the container"
 }

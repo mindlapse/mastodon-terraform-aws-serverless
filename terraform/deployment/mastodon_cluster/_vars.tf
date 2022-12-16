@@ -25,9 +25,16 @@ variable "subnet_ids" {
 }
 
 
-/* Container URLs */
+variable "listener_arn" {
+  type        = string
+  description = "The ARN of the HTTPS listener, to which listener rules will be attached"
+}
 
-variable "ecr_puma_url" {
+
+
+/* Container Image URL */
+
+variable "ecr_url" {
   type        = string
   description = "The URL of the aws_ecr_repository to use for Mastodon's Puma container"
 }
@@ -46,28 +53,10 @@ variable "count_streaming" {
   description = "Number of streaming instances desired"
 }
 
-
-
-/* Routing */
-
-variable "puma_target_group_arn" {
-  type        = string
-  description = "The ARN of the target group for the puma task"
-}
-
-
-/* Ports */
-
-variable "port_puma" {
+variable "count_sidekiq" {
   type        = number
-  description = "The port for puma (i.e. the web container in mastodon)"
-  default     = 3000
-}
-
-variable "port_streaming" {
-  type        = number
-  description = "The port for streaming (i.e. the streaming container in mastodon)"
-  default     = 4000
+  default     = 1
+  description = "Number of sidekiq instances desired"
 }
 
 /* Cluster */

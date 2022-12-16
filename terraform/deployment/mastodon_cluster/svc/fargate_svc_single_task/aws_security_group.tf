@@ -6,15 +6,18 @@ resource "aws_security_group" "sg" {
 
   vpc_id = var.vpc_id
 
-  ingress {
-    description      = "TLS from internet"
-    from_port        = var.container_port
-    to_port          = var.container_port
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
+  dynamic "ingress" {
+    for_each = var.container_port == null ? [] : [1]
 
+    content {
+      description      = "TLS from internet"
+      from_port        = var.container_port
+      to_port          = var.container_port
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  }
 
   egress {
     from_port        = 0

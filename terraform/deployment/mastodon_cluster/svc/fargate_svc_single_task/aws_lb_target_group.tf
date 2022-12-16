@@ -1,6 +1,7 @@
-resource "aws_lb_target_group" "ecs" {
-  name        = "${local.prefix_hyphen}-fargate-tg"
-  port        = 3000
+resource "aws_lb_target_group" "tg" {
+  count       = var.container_port == null ? 0 : 1
+  name        = "${local.prefix_hyphen}-fargate-tg-${var.simple_name}"
+  port        = var.container_port
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = var.vpc_id
@@ -18,4 +19,3 @@ resource "aws_lb_target_group" "ecs" {
     unhealthy_threshold = 3
   }
 }
-

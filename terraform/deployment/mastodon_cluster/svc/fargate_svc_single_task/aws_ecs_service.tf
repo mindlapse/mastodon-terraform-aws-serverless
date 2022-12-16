@@ -63,7 +63,7 @@ resource "aws_ecs_service" "svc" {
 
   # (Optional) Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, 
   # up to 2147483647. Only valid for services configured to use load balancers.
-  health_check_grace_period_seconds = 30
+  health_check_grace_period_seconds = var.container_port == null ? null : 30
 
   # (Optional) ARN of the IAM role that allows Amazon ECS to make calls to your load balancer on your behalf. 
   # This parameter is required if you are using a load balancer with your service, but only if your task 
@@ -76,11 +76,14 @@ resource "aws_ecs_service" "svc" {
   # launch_type = "FARGATE"
 
   # (Optional) Configuration block for load balancers. See below.
-  load_balancer {
-    # elb_name = # (Required for ELB Classic) Name of the ELB (Classic) to associate with the service.
-    target_group_arn = var.target_group_arn
-    container_name   = "${local.prefix}_${var.simple_name}"
-    container_port   = var.container_port
+  dynamic "load_balancer" {
+    for_each = var.container_port == null ? [] : [aws_lb_target_group.tg[0]]
+
+    content {
+      target_group_arn = load_balancer.value.arn
+      container_name   = "${local.prefix}_${var.simple_name}"
+      container_port   = var.container_port
+    }
   }
 
   # (Optional) Network configuration for the service. This parameter is required for task definitions that use the awsvpc network mode 

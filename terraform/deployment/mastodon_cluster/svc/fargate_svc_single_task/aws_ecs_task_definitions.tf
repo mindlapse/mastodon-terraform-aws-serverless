@@ -60,7 +60,7 @@ resource "aws_ecs_task_definition" "task" {
 
       # memoryReservation (not set)
 
-      portMappings = [{
+      portMappings = var.container_port == null ? null : [{
         appProtocol   = null
         containerPort = var.container_port
         hostPort      = null
@@ -68,7 +68,7 @@ resource "aws_ecs_task_definition" "task" {
         protocol      = "tcp"
       }]
 
-      healthCheck = {
+      healthCheck = var.container_port == null ? null : {
         command     = var.health_check_command
         interval    = 30
         timeout     = 5

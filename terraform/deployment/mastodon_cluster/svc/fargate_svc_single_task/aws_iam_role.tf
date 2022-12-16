@@ -1,7 +1,7 @@
 
 resource "aws_iam_role" "task_execution_role" {
 
-  name               = "${local.prefix}_ecs_task_exec_role"
+  name               = "${local.prefix}_ecs_task_exec_role_${var.simple_name}"
   assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
 
 }
@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "assume_role_policy" {
 
 
 resource "aws_iam_policy" "ecs_extras" {
-  name        = "${local.prefix}_ecs_extras"
+  name        = "${local.prefix}_ecs_extras_${var.simple_name}"
   description = "A test policy"
 
   policy = <<EOF
