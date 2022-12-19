@@ -34,3 +34,18 @@ variable "force_new_deployment" {
   description = "Set to true enable force_new_deployment on services"
   default     = false
 }
+
+variable "cloudfront_cert_arn" {
+  type        = string
+  description = "The ARN of the certificate to use with the CloudFront distribution (must be in us-east-1)"
+}
+
+variable "cloudfront_denylist" {
+  type        = list(string)
+  description = "Deny serving these countries (using ISO-3166 Alpha-2 codes)"
+}
+
+variable "cloudfront_domain" {
+  type        = string
+  description = "the domain (e.g. files.mastodon.solar)"
+}
