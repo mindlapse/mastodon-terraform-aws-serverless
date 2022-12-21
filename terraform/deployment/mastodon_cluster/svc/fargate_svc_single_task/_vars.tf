@@ -62,9 +62,9 @@ variable "mem" {
 
 /* Links */
 
-variable "ecs_cluster_arn" {
+variable "ecs_cluster_name" {
   type        = string
-  description = "the ARN of the ECS cluster where the service should be created"
+  description = "the name of the ECS cluster where the service should be created"
 }
 
 variable "ecr_image_url" {
@@ -92,7 +92,11 @@ variable "route_priority" {
   description = "An integer priority for placing listener rules.  Rules eval from lowest to highest priority."
 }
 
-
+variable "health_check_url" {
+  type        = string
+  default     = "/health"
+  description = ""
+}
 
 /* Runtime */
 variable "working_directory" {

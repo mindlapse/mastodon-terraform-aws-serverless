@@ -14,7 +14,7 @@ resource "aws_ecs_service" "svc" {
   }
 
   # (Optional) ARN of an ECS cluster.
-  cluster = var.ecs_cluster_arn
+  cluster = data.aws_ecs_cluster.ecs.arn
 
 
   # (Optional) Configuration block for deployment circuit breaker.

@@ -13,7 +13,7 @@ resource "aws_lb_target_group" "tg" {
     enabled             = true
     healthy_threshold   = 3
     interval            = 30
-    path                = "/health"
+    path                = var.health_check_url
     protocol            = "HTTP"
     timeout             = 20
     unhealthy_threshold = 3

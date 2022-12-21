@@ -7,9 +7,10 @@ module "svc_streaming" {
   vpc_id     = var.vpc_id
   subnet_ids = var.subnet_ids
 
-  listener_arn   = var.listener_arn
-  route_priority = 1
-  path_pattern   = "/api/v1/streaming*"
+  listener_arn     = var.listener_arn
+  route_priority   = 1
+  path_pattern     = "/api/v1/streaming*"
+  health_check_url = "/api/v1/streaming/health"
 
   simple_name          = "streaming"
   container_port       = 4000
@@ -17,10 +18,10 @@ module "svc_streaming" {
   force_new_deployment = var.force_new_deployment
 
   cpu = 256
-  mem = 512
+  mem = 1024
 
-  ecs_cluster_arn = aws_ecs_cluster.cluster.arn
-  ecr_image_url   = var.ecr_url
+  ecs_cluster_name = aws_ecs_cluster.cluster.name
+  ecr_image_url    = var.ecr_url
 
   working_directory    = "/opt/mastodon"
   health_check_command = ["CMD-SHELL", "wget -q --spider --proxy=off localhost:4000/api/v1/streaming/health || exit 1"]

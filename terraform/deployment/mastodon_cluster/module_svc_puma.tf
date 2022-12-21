@@ -17,10 +17,10 @@ module "svc_puma" {
   force_new_deployment = var.force_new_deployment
 
   cpu = 256
-  mem = 512
+  mem = 1024
 
-  ecs_cluster_arn = aws_ecs_cluster.cluster.arn
-  ecr_image_url   = var.ecr_url
+  ecs_cluster_name = aws_ecs_cluster.cluster.name
+  ecr_image_url    = var.ecr_url
 
   working_directory    = "/opt/mastodon"
   health_check_command = ["CMD-SHELL", "wget -q --spider --proxy=off localhost:3000/health || exit 1"]
