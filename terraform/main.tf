@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.0"
+      version = "~> 4.48.0"
     }
   }
 }
@@ -25,7 +25,9 @@ module "deployment" {
   product = var.product
   env     = var.env
 
-  domain              = var.domain
+  domain     = var.domain
+  alb_domain = var.alb_domain
+
   hosted_zone_id      = var.hosted_zone_id
   cert_acm_arn        = var.acm_cert_arn
   cloudfront_domain   = var.cloudfront_domain

@@ -8,6 +8,6 @@ module "fargate_alb" {
   vpc_id       = var.vpc_id
 
   hosted_zone_id = var.hosted_zone_id
-  web_domain     = var.domain
+  alb_domain     = var.alb_domain
 
 }

@@ -28,6 +28,9 @@ module "svc_puma" {
   environment = [{
     "name" : "ALTERNATE_IP_RANGES",
     "value" : join(",", [for s in data.aws_subnet.subnet : s.cidr_block])
+    }, {
+    "name" : "ALTERNATE_DOMAINS",
+    "value" : var.alb_domain
   }]
   user = "mastodon"
 }

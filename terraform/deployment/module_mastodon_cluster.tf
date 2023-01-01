@@ -14,4 +14,5 @@ module "mastodon_cluster" {
   count_sidekiq   = 1
 
   force_new_deployment = var.force_new_deployment
+  alb_domain           = var.alb_domain
 }

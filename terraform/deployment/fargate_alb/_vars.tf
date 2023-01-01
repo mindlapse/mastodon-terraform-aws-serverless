@@ -19,7 +19,7 @@ variable "hosted_zone_id" {
   description = "The ID of the hosted zone that will receive an aws_route53_record"
 }
 
-variable "web_domain" {
+variable "alb_domain" {
   type        = string
   description = "The hostname for an A record in the given hosted zone, that will alias to the ALB, e.g. mastodon.xyz."
 }

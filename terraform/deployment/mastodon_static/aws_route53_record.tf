@@ -1,10 +1,10 @@
-resource "aws_route53_record" "files" {
+resource "aws_route53_record" "www" {
 
   # (Required) The ID of the hosted zone to contain this record.
   zone_id = var.hosted_zone_id
 
   # The name of the record.
-  name = var.alb_domain
+  name = var.web_domain
 
   # (Required) The record type. Valid values are A, AAAA, CAA, CNAME, DS, MX, NAPTR, NS, PTR, SOA, SPF, SRV and TXT.
   type = "A"
@@ -27,10 +27,10 @@ resource "aws_route53_record" "files" {
   # (Optional) An alias block. Conflicts with ttl & records. Documented below.
   alias {
     # (Required) DNS domain name for a CloudFront distribution, S3 bucket, ELB, or another resource record set in this hosted zone.
-    name = module.alb.dns_name
+    name = aws_cloudfront_distribution.distro.domain_name
 
     # (Required) Hosted zone ID for a CloudFront distribution, S3 bucket, ELB, or Route 53 hosted zone. See resource_elb.zone_id for example.
-    zone_id = module.alb.zone_id
+    zone_id = aws_cloudfront_distribution.distro.hosted_zone_id
 
     # (Required) Set to true if you want Route 53 to determine whether to respond to DNS queries using this resource record set 
     # by checking the health of the resource record set. Some resources have special requirements, see related part of documentation.

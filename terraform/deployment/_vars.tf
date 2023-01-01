@@ -18,6 +18,11 @@ variable "domain" {
   description = "The domain name e.g. 'mastodon.solar'"
 }
 
+variable "alb_domain" {
+  type        = string
+  description = "The domain name for the ALB"
+}
+
 /* Hosting */
 variable "hosted_zone_id" {
   type        = string

@@ -1,10 +1,11 @@
-
-data "aws_subnet_ids" "subnets" {
-  vpc_id = var.vpc_id
+data "aws_subnets" "subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [var.vpc_id]
+  }
 }
 
-
 data "aws_subnet" "subnet" {
-  for_each = data.aws_subnet_ids.subnets.ids
+  for_each = toset(data.aws_subnets.subnets.ids)
   id       = each.value
 }

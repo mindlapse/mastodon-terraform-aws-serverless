@@ -1,10 +1,8 @@
-data "aws_s3_bucket" "bucket" {
-  bucket = var.bucket_name
-}
-
 data "aws_iam_policy_document" "allow_cloudfront" {
 
   statement {
+
+    sid = "allow_cloudfront"
 
     principals {
       type        = "Service"

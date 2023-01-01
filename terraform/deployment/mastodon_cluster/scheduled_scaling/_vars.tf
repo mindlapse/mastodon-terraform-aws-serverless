@@ -32,27 +32,27 @@ variable "service_name" {
 /* Scale up params */
 
 variable "scale_up_cron" {
-  type = string
+  type        = string
   description = "A cron statement for when to scale up. Example: cron(55 23 * * ? *)"
 }
 
 
 variable "scale_dn_cron" {
-  type = string
+  type        = string
   description = "A cron statement for when to scale up. Example: cron(55 23 * * ? *)"
 }
 
 variable "scale_up_min_instances" {
-  type = number
+  type        = number
   description = "The min number of instances during the scale up period"
 }
 
 variable "scale_dn_min_instances" {
-  type = number
+  type        = number
   description = "The min number of instances after the scale up period"
 }
 
 variable "max_instances" {
-  type = number
+  type        = number
   description = "The max number of instances during the scale up period"
 }

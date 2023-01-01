@@ -1,5 +1,5 @@
 resource "aws_appautoscaling_scheduled_action" "scale_up" {
-  name               = "${local.prefix}_${var.simple_name}_up"
+  name = "${local.prefix}_${var.simple_name}_up"
 
   service_namespace  = "ecs"
   resource_id        = "service/${var.cluster_name}/${var.service_name}"
@@ -14,7 +14,7 @@ resource "aws_appautoscaling_scheduled_action" "scale_up" {
 
 
 resource "aws_appautoscaling_scheduled_action" "scale_dn" {
-  name               = "${local.prefix}_${var.simple_name}_dn"
+  name = "${local.prefix}_${var.simple_name}_dn"
 
   service_namespace  = "ecs"
   resource_id        = "service/${var.cluster_name}/${var.service_name}"

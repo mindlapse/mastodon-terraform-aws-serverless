@@ -30,6 +30,12 @@ variable "listener_arn" {
   description = "The ARN of the HTTPS listener, to which listener rules will be attached"
 }
 
+variable "alb_domain" {
+  type        = string
+  description = "The hostname of the ALB"
+}
+
+
 
 
 /* Container Image URL */

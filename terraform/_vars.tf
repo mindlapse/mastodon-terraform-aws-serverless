@@ -30,6 +30,11 @@ variable "domain" {
   description = "The domain name of the mastodon deployment"
 }
 
+variable "alb_domain" {
+  type        = string
+  description = "The domain name for the ALB"
+}
+
 variable "hosted_zone_id" {
   type        = string
   description = "The ID of the hosted zone that will receive an aws_route53_record"

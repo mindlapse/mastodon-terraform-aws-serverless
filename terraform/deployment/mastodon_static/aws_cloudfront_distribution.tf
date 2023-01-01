@@ -1,10 +1,12 @@
 resource "aws_cloudfront_distribution" "distro" {
 
+  provider = aws.us-east-1
+
   # (Optional) - Extra CNAMEs (alternate domain names), if any, for this distribution.
-  aliases = [var.cloudfront_domain]
+  aliases = [var.web_domain]
 
   # (Optional) - Any comments you want to include about the distribution.
-  comment = var.comment
+  comment = "Mastodon cloudfront"
 
   # (Optional) - One or more custom error response elements (multiples allowed).
   # custom_error_response { }
@@ -13,7 +15,7 @@ resource "aws_cloudfront_distribution" "distro" {
   default_cache_behavior {
 
     # (Required) - Controls which HTTP methods CloudFront processes and forwards to your Amazon S3 bucket or your custom origin.
-    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    allowed_methods = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
 
     # (Required) - Controls whether CloudFront caches the response to requests using the specified HTTP methods.
     cached_methods = ["GET", "HEAD", "OPTIONS"]
@@ -25,7 +27,7 @@ resource "aws_cloudfront_distribution" "distro" {
     compress = true
 
     # (Optional) - The default amount of time (in seconds) that an object is in a CloudFront cache before CloudFront forwards another request in the absence of an Cache-Control max-age or Expires header.
-    default_ttl = 86400
+    default_ttl = 0
 
     # (Optional) - Field level encryption configuration ID
     # field_level_encryption_id = null
@@ -38,22 +40,23 @@ resource "aws_cloudfront_distribution" "distro" {
 
         # (Required) - Whether you want CloudFront to forward cookies to the origin that is associated with this cache behavior. 
         # You can specify all, none or whitelist. If whitelist, you must include the subsequent whitelisted_names
-        forward = "none"
+        forward = "all"
 
         # (Optional) - If you have specified 'whitelist' to forward, the whitelisted cookies that you want CloudFront to forward to your origin.
         # whitelisted_names = null
 
-        # (Optional) - Headers, if any, that you want CloudFront to vary upon for this cache behavior. Specify * to include all headers.
-        # headers = null
       }
 
+      # (Optional) - Headers, if any, that you want CloudFront to vary upon for this cache behavior. Specify * to include all headers.
+      headers = ["*"]
+
       # (Required) - Indicates whether you want CloudFront to forward query strings to the origin that is associated with this cache behavior.
-      query_string = false
+      query_string = true
 
       # (Optional) - When specified, along with a value of true for query_string, all query strings are forwarded, 
       # however only the query string keys listed in this argument are cached. 
       # When omitted with a value of true for query_string, all query string keys are cached.
-      # query_string_cache_keys = null
+      query_string_cache_keys = []
     }
 
     # (Optional) - A config block that triggers a lambda function with specific actions (maximum 4).
@@ -65,7 +68,7 @@ resource "aws_cloudfront_distribution" "distro" {
     # (Optional) - The maximum amount of time (in seconds) that an object is in a CloudFront cache before 
     # CloudFront forwards another request to your origin to determine whether the object has been updated. 
     # Only effective in the presence of Cache-Control max-age, Cache-Control s-maxage, and Expires headers.
-    max_ttl = 86400 # 1 year
+    max_ttl = 0 # 1 day
 
     # (Optional) - The minimum amount of time that you want objects to stay in CloudFront caches before CloudFront queries your origin to see whether the object has been updated. Defaults to 0 seconds.
     min_ttl = 0
@@ -83,7 +86,7 @@ resource "aws_cloudfront_distribution" "distro" {
     smooth_streaming = null
 
     # (Required) - The value of ID for the origin that you want CloudFront to route requests to when a request matches the path pattern either for a cache behavior or for the default cache behavior.
-    target_origin_id = local.origin_id
+    target_origin_id = local.alb_origin
 
     # (Optional) - A list of key group IDs that CloudFront can use to validate signed URLs or signed cookies. See the CloudFront User Guide for more information about this feature.
     # trusted_key_groups = 
@@ -92,7 +95,7 @@ resource "aws_cloudfront_distribution" "distro" {
     # trusted_signers = 
 
     # (Required) - Use this element to specify the protocol that users can use to access the files in the origin specified by TargetOriginId when a request matches the path pattern in PathPattern. One of allow-all, https-only, or redirect-to-https.
-    viewer_protocol_policy = "redirect-to-https"
+    viewer_protocol_policy = "https-only"
   }
 
   # (Optional) - The object that you want CloudFront to return (for example, index.html) when an end user requests the root URL.
@@ -112,7 +115,40 @@ resource "aws_cloudfront_distribution" "distro" {
 
   # (Optional) - An ordered list of cache behaviors resource for this distribution. 
   # List from top to bottom in order of precedence. The topmost cache behavior will have precedence 0.
-  # ordered_cache_behavior
+  dynamic "ordered_cache_behavior" {
+    for_each = [
+      "/sw.js",
+      "/assets/*",
+      "/avatars/*",
+      "/emoji/*",
+      "/headers/*",
+      "/packs/*",
+      "/shortcuts/*",
+      "/sounds/*",
+      "/system/*"
+    ]
+
+    content {
+      path_pattern    = ordered_cache_behavior.value
+      allowed_methods = ["GET", "HEAD", "OPTIONS"]
+      cached_methods  = ["GET", "HEAD"]
+      compress        = true
+      default_ttl     = local.cache_seconds
+
+      forwarded_values {
+        cookies {
+          forward = "none"
+        }
+        query_string = false
+      }
+
+      max_ttl                = local.cache_seconds
+      min_ttl                = 0
+      target_origin_id       = local.s3_origin
+      viewer_protocol_policy = "https-only"
+    }
+  }
+
 
   # (Required) - One or more origins for this distribution (multiples allowed).
   origin {
@@ -135,7 +171,7 @@ resource "aws_cloudfront_distribution" "distro" {
     origin_access_control_id = aws_cloudfront_origin_access_control.oac.id
 
     # (Required) - A unique identifier for the origin.
-    origin_id = "origin"
+    origin_id = local.s3_origin
 
     # (Optional) - An optional element that causes CloudFront to request your content from a directory in your Amazon S3 bucket or your custom origin.
     # origin_path 
@@ -148,6 +184,33 @@ resource "aws_cloudfront_distribution" "distro" {
     #   # (Required) - The CloudFront origin access identity to associate with the origin.
     #   origin_access_identity = aws_cloudfront_origin_access_identity.oai.s3_canonical_user_id
     # }
+  }
+
+  origin {
+    connection_attempts = 3
+    connection_timeout  = 10
+    domain_name         = var.alb_domain
+    origin_id           = local.alb_origin
+    custom_origin_config {
+
+      # (Required) - The HTTP port the custom origin listens on.
+      http_port = 80
+
+      # (Required) - The HTTPS port the custom origin listens on.
+      https_port = 443
+
+      # (Required) - The origin protocol policy to apply to your origin. One of http-only, https-only, or match-viewer.
+      origin_protocol_policy = "https-only"
+
+      # (Required) - The SSL/TLS protocols that you want CloudFront to use when communicating with your origin over HTTPS. A list of one or more of SSLv3, TLSv1, TLSv1.1, and TLSv1.2.
+      origin_ssl_protocols = ["TLSv1.2"]
+
+      # (Optional) The Custom KeepAlive timeout, in seconds. By default, AWS enforces a limit of 60. But you can request an increase.
+      # origin_keepalive_timeout =
+
+      # (Optional) The Custom Read timeout, in seconds. By default, AWS enforces a limit of 60. But you can request an increase.
+      # origin_read_timeout =
+    }
   }
 
   # (Optional) - One or more origin_group for this distribution (multiples allowed).
@@ -172,7 +235,7 @@ resource "aws_cloudfront_distribution" "distro" {
   viewer_certificate {
 
     # The ARN of the AWS Certificate Manager certificate that you wish to use with this distribution. Specify this, cloudfront_default_certificate, or iam_certificate_id. The ACM certificate must be in US-EAST-1.
-    acm_certificate_arn = var.acm_certificate_arn
+    acm_certificate_arn = data.aws_acm_certificate.cloudfront_cert.arn
 
     # true if you want viewers to use HTTPS to request your objects and you're using the CloudFront domain name for your distribution. Specify this, acm_certificate_arn, or iam_certificate_id.
     # cloudfront_default_certificate 
