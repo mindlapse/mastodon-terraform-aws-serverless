@@ -16,7 +16,7 @@ module "svc_puma" {
   desired_count        = var.count_puma
   force_new_deployment = var.force_new_deployment
 
-  cpu = 256
+  cpu = 512
   mem = 1024
 
   ecs_cluster_name = aws_ecs_cluster.cluster.name
