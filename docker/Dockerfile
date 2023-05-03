@@ -1,30 +1,96 @@
-FROM ubuntu:22.04
+# syntax=docker/dockerfile:1.4
+# This needs to be bullseye-slim because the Ruby image is built on bullseye-slim
+ARG NODE_VERSION="16.17.1-bullseye-slim"
 
-RUN apt-get update && apt-get -y install
-RUN apt-get install -y curl wget gnupg apt-transport-https lsb-release ca-certificates
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash -
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  imagemagick ffmpeg libpq-dev libxml2-dev libxslt1-dev file git-core \
-  g++ libprotobuf-dev protobuf-compiler pkg-config nodejs gcc autoconf \
-  bison build-essential libssl-dev libyaml-dev libreadline6-dev \
-  zlib1g-dev libncurses5-dev libffi-dev libgdbm-dev \
-  certbot libidn11-dev libicu-dev libjemalloc-dev
-RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-RUN cd ~/.rbenv && src/configure && make -C src
-RUN echo 'export PATH="/root/.rbenv/bin:$PATH"' >> ~/.bashrc
-RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-RUN echo $HOME
-ENV PATH="/root/.rbenv/shims:/root/.rbenv/bin:$PATH"
-RUN git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
-RUN rbenv install 3.0.4
-RUN rbenv global 3.0.4
-RUN gem install bundler
-RUN git clone https://github.com/mastodon/mastodon.git live
+FROM rubybase as ruby
+FROM node:${NODE_VERSION} as build
 
-RUN cd live && git checkout $(git tag -l | grep -v 'rc[0-9]*$' | sort -V | tail -n 1) && \
-    bundle config deployment 'true' && \
-    bundle config without 'development test' && \
-    bundle install -j$(getconf _NPROCESSORS_ONLN)
-RUN corepack enable
-RUN yarn install --pure-lockfile
-#RUN RAILS_ENV=production exec bash && bundle exec rake mastodon:setup
+COPY --link --from=ruby /opt/ruby /opt/ruby
+
+ENV DEBIAN_FRONTEND="noninteractive" \
+    PATH="${PATH}:/opt/ruby/bin"
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+WORKDIR /opt/mastodon
+COPY Gemfile* package.json yarn.lock /opt/mastodon/
+
+RUN apt update && \
+    apt-get install -y --no-install-recommends build-essential \
+        ca-certificates \
+        git \
+        libicu-dev \
+        libidn11-dev \
+        libpq-dev \
+        libjemalloc-dev \
+        zlib1g-dev \
+        libgdbm-dev \
+        libgmp-dev \
+        libssl-dev \
+        libyaml-0-2 \
+        ca-certificates \
+        libreadline8 \
+        python3 \
+        shared-mime-info && \
+    bundle config set --local deployment 'true' && \
+    bundle config set --local without 'development test' && \
+    bundle config set silence_root_warning true && \
+    bundle install -j"$(nproc)" && \
+    yarn install --pure-lockfile
+
+FROM node:${NODE_VERSION}
+
+ARG UID="991"
+ARG GID="991"
+
+COPY --link --from=ruby /opt/ruby /opt/ruby
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV DEBIAN_FRONTEND="noninteractive" \
+    PATH="${PATH}:/opt/ruby/bin:/opt/mastodon/bin"
+
+RUN apt-get update && \
+    echo "Etc/UTC" > /etc/localtime && \
+    groupadd -g "${GID}" mastodon && \
+    useradd -u "$UID" -g "${GID}" -m -d /opt/mastodon mastodon && \
+    apt-get -y --no-install-recommends install whois \
+        wget \
+        procps \
+        libssl1.1 \
+        libpq5 \
+        imagemagick \
+        ffmpeg \
+        libjemalloc2 \
+        libicu67 \
+        libidn11 \
+        libyaml-0-2 \
+        file \
+        ca-certificates \
+        tzdata \
+        libreadline8 \
+        tini && \
+    ln -s /opt/mastodon /mastodon
+
+# Note: no, cleaning here since Debian does this automatically
+# See the file /etc/apt/apt.conf.d/docker-clean within the Docker image's filesystem
+
+COPY --chown=mastodon:mastodon . /opt/mastodon
+COPY --chown=mastodon:mastodon --from=build /opt/mastodon /opt/mastodon
+
+ENV RAILS_ENV="production" \
+    NODE_ENV="production" \
+    RAILS_SERVE_STATIC_FILES="true" \
+    BIND="0.0.0.0"
+
+# Set the run user
+USER mastodon
+WORKDIR /opt/mastodon
+
+# Precompile assets
+RUN OTP_SECRET=precompile_placeholder SECRET_KEY_BASE=precompile_placeholder rails assets:precompile && \
+    yarn cache clean
+
+# Set the work dir and the container entry point
+ENTRYPOINT ["/usr/bin/tini", "--"]
+EXPOSE 3000 4000

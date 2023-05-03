@@ -5,3 +5,5 @@ terraform.tfstate.backup
 terraform/.terraform.tfstate.lock.info
 terraform.tfvars
 docker/public
+.env.production*
+_scrap
